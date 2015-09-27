@@ -76,7 +76,7 @@ public class SimpleWebServer {
 	 			contentLength = split[split.length-1];
 	 		}
 	 		System.out.println(line);
-	 	} while(line != null && line.equals(""));
+	 	} while(line != null && !(line.equals("")));
 	 	
 	 	System.out.println("REQUEST: " + request);
 	 	
