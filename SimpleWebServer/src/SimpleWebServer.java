@@ -209,7 +209,7 @@ public class SimpleWebServer {
 			bw.write(line);
 			line = br.readLine();
 		}
-		br.close();
+		bw.close();
 		
 		
     }
