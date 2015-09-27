@@ -15,8 +15,9 @@ import java.io.*;
 import java.net.*;                                        
 import java.util.*;                                       
  
+
 public class SimpleWebServer {                            
- 
+	private static final int KILOBYTE = 1024;
     /* Run the HTTP server on this TCP port. */           
     private static final int PORT = 8080;                 
  
@@ -25,7 +26,7 @@ public class SimpleWebServer {
     private static ServerSocket dServerSocket;            
    
     public SimpleWebServer () throws Exception {          
- 	dServerSocket = new ServerSocket (PORT);          
+    	dServerSocket = new ServerSocket (PORT);          
     }                                                     
  
     public void run() throws Exception {  
@@ -55,7 +56,19 @@ public class SimpleWebServer {
 	 	    new OutputStreamWriter (s.getOutputStream());  
 	     
 	 	/* read the HTTP request from the client */
-	 	String request = br.readLine();                    
+	 	String request = br.readLine();
+	 	
+	 	System.out.println("REQUEST: " + request);
+	 	
+	 	/* The URL requested needs to be smaller than 1KB */
+	 	if(request.getBytes("UTF-8").length > KILOBYTE) {
+	 		handleError(osw, 414);
+	 		return;
+	 	}
+	 	/* Request must match <headername>: <value> */
+	 	if(!request.matches("^.*:\\s.*$")){
+	 		handleError(osw, 400);
+	 	}
 	 
 	 	String command = null;                             
 	 	String pathname = null;
@@ -64,16 +77,22 @@ public class SimpleWebServer {
 	 	/* parse the HTTP request */
 	 	StringTokenizer st = 
 		    new StringTokenizer (request, " ");               
-	 	if(st.countTokens() >= 2){
+	 	if(st.countTokens() >= 3){
 	 		command = st.nextToken();                       
 		 	pathname = st.nextToken();
 		 	httpVersion = st.nextToken();
 	 	} else {
 	 		handleError(osw, 400);
+	 		return;
 	 	}
 	 	
 	 	System.out.println("HTTP-Version: " + httpVersion);
-	 	
+	 	if(httpVersion.equals("HTTP/1.1") || httpVersion.equals("HTTP/1.0")){
+	 		
+	 	} else {
+	 		handleError(osw, 400);
+	 		return;
+	 	}
 	 
 	 	System.out.println("Process parced. Analyzing command...");
 		if (command.equals("GET")) {                    
@@ -88,12 +107,12 @@ public class SimpleWebServer {
 	 		 */
 	 		updateFile(osw, pathname);
 	 		
-	 	}                 
-	 	else {                                         
-		    /* if the request is a NOT a GET,
+	 	} else {                                         
+		    /* if the request is a NOT a GET or PUT
 		       return an error saying this server
 		       does not implement the requested command */
-		    handleError(osw, 500);
+		    handleError(osw, 501);
+		    return;
 	 	}                                               
 	 	
 	 	/* close the connection to the client */
@@ -101,63 +120,89 @@ public class SimpleWebServer {
     }                                                   
  
     public void serveFile (OutputStreamWriter osw, String pathname) throws Exception {
- 	FileReader fr=null;                                 
- 	int c=-1;                                           
- 	StringBuffer sb = new StringBuffer();
-       
- 	/* remove the initial slash at the beginning
- 	   of the pathname in the request */
- 	if (pathname.charAt(0)=='/')                        
- 	    pathname=pathname.substring(1);                 
- 	
- 	/* if there was no filename specified by the
- 	   client, serve the "index.html" file */
- 	if (pathname.equals(""))                            
- 	    pathname="index.html";                          
+	 	FileReader fr=null;                                 
+	 	int c=-1;                                           
+	 	StringBuffer sb = new StringBuffer();
+	       
+	 	/* remove the initial slash at the beginning
+	 	   of the pathname in the request */
+	 	if (pathname.charAt(0)=='/')                        
+	 	    pathname=pathname.substring(1);                 
+	 	
+	 	/* if there was no filename specified by the
+	 	   client, serve the "index.html" file */
+	 	if (pathname.equals(""))                            
+	 	    pathname="index.html";                          
+	 
+		 	/* try to open file specified by pathname */
+		 	try {                                               
+		 	    fr = new FileReader (pathname);                 
+		 	    c = fr.read();                                  
+		 	}                                                   
+		 	catch (Exception e) {                               
+		 	    /* if the file is not found,return the
+		 	       appropriate HTTP response code  */
+		 	    osw.write ("HTTP/1.0 404 Not Found\n\n");         
+		 	    return;                                         
+		 	}                                                   
  
- 	/* try to open file specified by pathname */
- 	try {                                               
- 	    fr = new FileReader (pathname);                 
- 	    c = fr.read();                                  
- 	}                                                   
- 	catch (Exception e) {                               
- 	    /* if the file is not found,return the
- 	       appropriate HTTP response code  */
- 	    osw.write ("HTTP/1.0 404 Not Found\n\n");         
- 	    return;                                         
- 	}                                                   
- 
- 	/* if the requested file can be successfully opened
- 	   and read, then return an OK response code and
- 	   send the contents of the file */
- 	osw.write ("HTTP/1.0 200 OK\n\n");                    
- 	while (c != -1) {       
-	    sb.append((char)c);                            
- 	    c = fr.read();                                  
- 	}                                                   
- 	osw.write (sb.toString());                                  
-    }                                                       
+		 	/* if the requested file can be successfully opened
+		 	   and read, then return an OK response code and
+		 	   send the contents of the file */
+		 	osw.write ("HTTP/1.0 200 OK\n\n");                    
+		 	while (c != -1) {       
+			    sb.append((char)c);                            
+		 	    c = fr.read();                                  
+		 	}                                                   
+		 	osw.write (sb.toString());                                  
+    	}                                                       
  
     public void updateFile(OutputStreamWriter osw, String pathname) throws Exception {
+    	if(true){
+    		createFile(osw, pathname);
+    	}
+    }
+    
+    public void createFile(OutputStreamWriter osw, String pathname) throws Exception{
     	
     }
+    
     
     public void handleError(OutputStreamWriter osw, int status) throws Exception{
     	String errorMessage;
     	switch(status) {
 	    	case 400: {
-	    		errorMessage = "HTTP/1.0 400 Bad Request";
+	    		errorMessage = "Malformed request or header"; //These need to be separated
 	    		break;
 	    	}
-	    	case 501:
-	    		errorMessage = "HTTP/1.0 501 Not Implemented";
+	    	case 403: {
+	    		errorMessage = "Forbidden";
+	    		break;
+	    	}
+	    	case 411: {
+	    		errorMessage = "Missing content-length header";
+	    		break;
+	    	}
+	    	case 414:
+	    		errorMessage = "Too large of a request";
+	    		break;
+	    	case 501: {
+	    		errorMessage = "Not implemented";
+	    		break;
+	    	}
+	    	case 505: {
+	    		errorMessage = "Bad HTTP Version";
+	    	}
 	    	default: {
-	    		errorMessage = "HTTP/1.0 500 Internal Error";
+	    		errorMessage = "Internal error";
 	    		break;
 	    	}
     	}
-    	osw.write(errorMessage + "\n\n");
+    	String responseMessage = String.format("Return status %d: %s", status, errorMessage);
+    	osw.write(responseMessage + "\n\n");
     }
+    
+    
     /* This method is called when the program is run from
        the command line. */
     public static void main (String argv[]) throws Exception { 
