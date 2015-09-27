@@ -192,12 +192,14 @@ public class SimpleWebServer {
     	}                                                       
  
     public void updateFile(OutputStreamWriter osw, String pathname, BufferedReader br) throws Exception {
+    	System.out.println("Updating file...");
     	if(pathname.startsWith("/")){
     		pathname = pathname.substring(1);
     	}
     	File f = new File(pathname);
     	if(!(f != null && f.isFile())) {
     		osw.write("Request 201: File created");
+    		System.out.println("Creating file");
     	}
     	
     	FileWriter fw = new FileWriter(f);
@@ -205,6 +207,7 @@ public class SimpleWebServer {
 		String line = new String();
 		do {
 			line = br.readLine();
+			System.out.println("Line: " + line);
 			bw.write(line);
 		} while(line != null && line.length() != 0);
 		fw.close();
