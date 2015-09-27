@@ -208,6 +208,7 @@ public class SimpleWebServer {
 		while(line != null && !(line.isEmpty())) {
 			System.out.println("1 " + line);
 			bw.write(line);
+			System.out.println("Line written");
 			line = br.readLine();
 		}
 		System.out.println("Exiting writing");
