@@ -58,9 +58,10 @@ public class SimpleWebServer {
 	 	/* read the HTTP request from the client */
 	 	
 	 	String request = br.readLine();
-	 	String contentLength;
+	 	String contentLength  = new String();
 	 	
 	 	String line;
+	 	/* Read the headers */
 	 	do{
 	 		line = br.readLine();
 	 		/* Getting the contentLength */
@@ -69,7 +70,7 @@ public class SimpleWebServer {
 	 			contentLength = split[split.length-1];
 	 		}
 	 		System.out.println(line);
-	 	} while(line != null && line.length() != 0);
+	 	} while(line != null && line.equals(""));
 	 	
 	 	System.out.println("REQUEST: " + request);
 	 	
@@ -82,6 +83,7 @@ public class SimpleWebServer {
 	 	if(!request.matches("^.*:\\s.*$")){
 	 		handleError(osw, 400);
 	 	}
+	 	
 	 
 	 	String command = null;                             
 	 	String pathname = null;
@@ -106,6 +108,13 @@ public class SimpleWebServer {
 	 		handleError(osw, 400);
 	 		return;
 	 	}
+	 	File tmpFile = new File("/", pathname);
+	 	
+	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
+	 		handleError(osw, 403);
+	 		return;
+	 	}
+	 	
 	 
 	 	System.out.println("Process parced. Analyzing command...");
 		if (command.equals("GET")) {                    
@@ -118,7 +127,13 @@ public class SimpleWebServer {
 	 		 	try to update the file 
 	 		 	the user is specifying. 
 	 		 */
-	 		updateFile(osw, pathname);
+	 		
+	 		/* Request must include a content-length */
+		 	if(contentLength == null) {
+		 		handleError(osw, 411);
+		 		return;
+		 	}
+	 		updateFile(osw, pathname, br);
 	 		
 	 	} else {                                         
 		    /* if the request is a NOT a GET or PUT
@@ -170,15 +185,24 @@ public class SimpleWebServer {
 		 	osw.write (sb.toString());                                  
     	}                                                       
  
-    public void updateFile(OutputStreamWriter osw, String pathname) throws Exception {
-    	if(true){
-    		createFile(osw, pathname);
+    public void updateFile(OutputStreamWriter osw, String pathname, BufferedReader br) throws Exception {
+    	File f = new File(pathname);
+    	if(!(f != null && f.isFile())) {
+    		osw.write("Request 201: File created");
     	}
+    	
+    	FileWriter fw = new FileWriter(f);
+		BufferedWriter bw = new BufferedWriter(fw);
+		String line = new String();
+		do {
+			line = br.readLine();
+			bw.write(line);
+		} while(line != null && line.length() != 0);
+		fw.close();
+		br.close();
     }
     
-    public void createFile(OutputStreamWriter osw, String pathname) throws Exception{
-    	
-    }
+
     
     
     public void handleError(OutputStreamWriter osw, int status) throws Exception{
@@ -213,6 +237,7 @@ public class SimpleWebServer {
     	}
     	String responseMessage = String.format("Return status %d: %s", status, errorMessage);
     	osw.write(responseMessage + "\n\n");
+    	osw.close();
     }
     
     
