@@ -210,6 +210,7 @@ public class SimpleWebServer {
 			bw.write(line);
 			System.out.println("Line written");
 			line = br.readLine();
+			System.out.println("Line read");
 		}
 		System.out.println("Exiting writing");
 		bw.close();
