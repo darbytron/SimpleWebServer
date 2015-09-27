@@ -66,8 +66,8 @@ public class SimpleWebServer {
 	 		line = br.readLine();
 	 		/* Getting the contentLength */
 	 		/* Request must match <headername>: <value> */
-		 	if(!request.matches("^.*:\\s.*$")){
-		 		System.out.println("Request sucks");
+		 	if(!line.matches("^.*:\\s.*$")){
+		 		System.out.println("Request sucks, header: " + line);
 		 		handleError(osw, 400);
 		 		return;
 		 	}
@@ -86,8 +86,6 @@ public class SimpleWebServer {
 	 		return;
 	 	}
 	 	
-	 	
-	 
 	 	String command = null;                             
 	 	String pathname = null;
 	 	String httpVersion = null;
