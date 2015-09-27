@@ -191,6 +191,9 @@ public class SimpleWebServer {
     	}                                                       
  
     public void updateFile(OutputStreamWriter osw, String pathname, BufferedReader br) throws Exception {
+    	if(pathname.startsWith("/")){
+    		pathname = pathname.substring(1);
+    	}
     	File f = new File(pathname);
     	if(!(f != null && f.isFile())) {
     		osw.write("Request 201: File created");
