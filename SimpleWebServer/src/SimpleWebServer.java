@@ -43,6 +43,7 @@ public class SimpleWebServer {
        responds with the file the user requested or
        a HTTP error code. */
     public void processRequest(Socket s) throws Exception { 
+    	
     	System.out.println("Request received. Processing...");
 	 	/* used to read data from the client */ 
 	 	BufferedReader br =                                 
@@ -57,14 +58,27 @@ public class SimpleWebServer {
 	 	String request = br.readLine();                    
 	 
 	 	String command = null;                             
-	 	String pathname = null;                            
-	    
+	 	String pathname = null;
+	 	String httpVersion = null;
+	 	
 	 	/* parse the HTTP request */
 	 	StringTokenizer st = 
 		    new StringTokenizer (request, " ");               
-	 
-	 	command = st.nextToken();                       
-	 	pathname = st.nextToken();                      
+	 	if(st.countTokens() >= 2){
+	 		command = st.nextToken();                       
+		 	pathname = st.nextToken();
+		 	httpVersion = st.nextToken();
+	 	} else {
+	 		handleError(osw, 400);
+	 	}
+	 	
+	 	System.out.println("HTTP-Version: " + httpVersion);
+	    
+	 	if(httpVersion != null){
+	 		System.out.println("Crashing...");
+	 		System.exit(1);
+	 	}
+	 	
 	 
 	 	System.out.println("Process parced. Analyzing command...");
 		if (command.equals("GET")) {                    
@@ -84,7 +98,7 @@ public class SimpleWebServer {
 		    /* if the request is a NOT a GET,
 		       return an error saying this server
 		       does not implement the requested command */
-		    osw.write ("HTTP/1.0 501 Not Implemented\n\n");
+		    handleError(osw, 500);
 	 	}                                               
 	 	
 	 	/* close the connection to the client */
@@ -131,6 +145,23 @@ public class SimpleWebServer {
  
     public void updateFile(OutputStreamWriter osw, String pathname) throws Exception {
     	
+    }
+    
+    public void handleError(OutputStreamWriter osw, int status) throws Exception{
+    	String errorMessage;
+    	switch(status) {
+	    	case 400: {
+	    		errorMessage = "HTTP/1.0 400 Bad Request";
+	    		break;
+	    	}
+	    	case 501:
+	    		errorMessage = "HTTP/1.0 501 Not Implemented";
+	    	default: {
+	    		errorMessage = "HTTP/1.0 500 Internal Error";
+	    		break;
+	    	}
+    	}
+    	osw.write(errorMessage + "\n\n");
     }
     /* This method is called when the program is run from
        the command line. */
