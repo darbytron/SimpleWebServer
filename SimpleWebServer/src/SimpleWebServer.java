@@ -205,7 +205,7 @@ public class SimpleWebServer {
     	
 		BufferedWriter bw = new BufferedWriter(new FileWriter(f));
 		String line = br.readLine();
-		while(line != null && !(line.equals(""))) {
+		while(line != null && !(line.isEmpty())) {
 			System.out.println("1 " + line);
 			bw.write(line);
 			line = br.readLine();
