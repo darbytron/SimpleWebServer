@@ -198,7 +198,7 @@ public class SimpleWebServer {
     	}
     	File f = new File(pathname);
     	if(f != null && f.isFile()) {
-    		osw.write("Request 200: File created");
+    		osw.write("Request 200: File updated");
     		System.out.println("Updating file");
     	} else {
     		osw.write("Request 201: File created");
@@ -210,6 +210,7 @@ public class SimpleWebServer {
 		String line = br.readLine();
 		while(line != null && !(line.equals(""))) {
 			bw.write(line);
+			line = br.readLine();
 		}
 		fw.close();
 		br.close();
