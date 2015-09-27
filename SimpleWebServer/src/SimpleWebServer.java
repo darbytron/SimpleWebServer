@@ -58,10 +58,11 @@ public class SimpleWebServer {
 	 	/* read the HTTP request from the client */
 	 	
 	 	String request = br.readLine();
-	 	String line = br.readLine();
-	 	while(line != null) {
+	 	String line;
+	 	do{
+	 		line = br.readLine();
 	 		System.out.println(line);
-	 	}
+	 	} while(line != null);
 	 	System.out.println("REQUEST: " + request);
 	 	
 	 	/* The URL requested needs to be smaller than 1KB */
