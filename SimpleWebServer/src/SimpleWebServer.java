@@ -197,21 +197,23 @@ public class SimpleWebServer {
     		pathname = pathname.substring(1);
     	}
     	File f = new File(pathname);
-    	if(!(f != null && f.isFile())) {
+    	if(f != null && f.isFile()) {
+    		osw.write("Request 200: File created");
+    		System.out.println("Updating file");
+    	} else {
     		osw.write("Request 201: File created");
     		System.out.println("Creating file");
     	}
     	
     	FileWriter fw = new FileWriter(f);
 		BufferedWriter bw = new BufferedWriter(fw);
-		String line = new String();
-		do {
-			line = br.readLine();
-			System.out.println("Line: " + line);
+		String line = br.readLine();
+		while(line != null && !(line.equals(""))) {
 			bw.write(line);
-		} while(line != null && line.length() != 0);
+		}
 		fw.close();
 		br.close();
+		
     }
     
 
