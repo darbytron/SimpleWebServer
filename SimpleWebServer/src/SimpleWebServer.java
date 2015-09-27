@@ -145,6 +145,7 @@ public class SimpleWebServer {
 	 	}                                               
 	 	
 	 	/* close the connection to the client */
+		
 	 	osw.close();                                    
     }          
     
@@ -214,6 +215,7 @@ public class SimpleWebServer {
     
     
     public void handleError(OutputStreamWriter osw, int status) throws Exception{
+    	System.out.println("Handling error " + status);
     	String errorMessage;
     	switch(status) {
 	    	case 400: {
