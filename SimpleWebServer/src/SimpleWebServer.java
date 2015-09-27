@@ -65,6 +65,12 @@ public class SimpleWebServer {
 	 	do{
 	 		line = br.readLine();
 	 		/* Getting the contentLength */
+	 		/* Request must match <headername>: <value> */
+		 	if(!request.matches("^.*:\\s.*$")){
+		 		System.out.println("Request sucks");
+		 		handleError(osw, 400);
+		 		return;
+		 	}
 	 		if(line.startsWith("Content-Length:")){
 	 			String split[] = line.split(" ");
 	 			contentLength = split[split.length-1];
@@ -79,12 +85,7 @@ public class SimpleWebServer {
 	 		handleError(osw, 414);
 	 		return;
 	 	}
-	 	/* Request must match <headername>: <value> */
-	 	if(!request.matches("^.*:\\s.*$")){
-	 		System.out.println("Request sucks");
-	 		handleError(osw, 400);
-	 		return;
-	 	}
+	 	
 	 	
 	 
 	 	String command = null;                             
@@ -147,7 +148,11 @@ public class SimpleWebServer {
 	 	
 	 	/* close the connection to the client */
 	 	osw.close();                                    
-    }                                                   
+    }          
+    
+    public void validateHeaders(OutputStreamWriter osw, BufferedReader br){
+    	
+    }
  
     public void serveFile (OutputStreamWriter osw, String pathname) throws Exception {
 	 	FileReader fr=null;                                 
