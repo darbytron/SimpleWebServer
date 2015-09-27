@@ -81,7 +81,9 @@ public class SimpleWebServer {
 	 	}
 	 	/* Request must match <headername>: <value> */
 	 	if(!request.matches("^.*:\\s.*$")){
+	 		System.out.println("Request sucks");
 	 		handleError(osw, 400);
+	 		return;
 	 	}
 	 	
 	 
