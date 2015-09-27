@@ -64,6 +64,7 @@ public class SimpleWebServer {
 	 	/* Read the headers */
 	 	do{
 	 		line = br.readLine();
+	 		System.out.println(line);
 	 		/* Getting the contentLength */
 	 		/* Request must match <headername>: <value> */
 		 	if(!line.matches("^.*:\\s.*$")){
@@ -75,7 +76,6 @@ public class SimpleWebServer {
 	 			String split[] = line.split(" ");
 	 			contentLength = split[split.length-1];
 	 		}
-	 		System.out.println(line);
 	 	} while(line != null && !(line.equals("")));
 	 	
 	 	System.out.println("REQUEST: " + request);
