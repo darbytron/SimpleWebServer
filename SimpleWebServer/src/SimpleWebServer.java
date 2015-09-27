@@ -58,11 +58,19 @@ public class SimpleWebServer {
 	 	/* read the HTTP request from the client */
 	 	
 	 	String request = br.readLine();
+	 	String contentLength;
+	 	
 	 	String line;
 	 	do{
 	 		line = br.readLine();
+	 		/* Getting the contentLength */
+	 		if(line.startsWith("Content-Length:")){
+	 			String split[] = line.split(" ");
+	 			contentLength = split[split.length-1];
+	 		}
 	 		System.out.println(line);
-	 	} while(line != null);
+	 	} while(line != null && line.length() != 0);
+	 	
 	 	System.out.println("REQUEST: " + request);
 	 	
 	 	/* The URL requested needs to be smaller than 1KB */
