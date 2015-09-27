@@ -73,11 +73,6 @@ public class SimpleWebServer {
 	 	}
 	 	
 	 	System.out.println("HTTP-Version: " + httpVersion);
-	    
-	 	if(httpVersion != null){
-	 		System.out.println("Crashing...");
-	 		System.exit(1);
-	 	}
 	 	
 	 
 	 	System.out.println("Process parced. Analyzing command...");
