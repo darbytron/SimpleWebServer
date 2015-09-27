@@ -204,14 +204,13 @@ public class SimpleWebServer {
     	}
     	
 		BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-		String line = br.readLine();
-		while(line != null && !(line.isEmpty())) {
-			System.out.println("1 " + line);
+		String line = null;
+		
+		while((line = br.readLine()) != null && !line.isEmpty()){
 			bw.write(line);
 			System.out.println("Line written");
-			line = br.readLine();
-			System.out.println("Line read");
 		}
+		
 		System.out.println("Exiting writing");
 		bw.close();
 		
