@@ -60,10 +60,9 @@ public class SimpleWebServer {
 	 	String request = br.readLine();
 	 	String contentLength  = new String();
 	 	
-	 	String line;
+	 	String line = br.readLine();
 	 	/* Read the headers */
-	 	do{
-	 		line = br.readLine();
+	 	while(line != null && !(line.equals(""))) {
 	 		System.out.println(line);
 	 		/* Getting the contentLength */
 	 		/* Request must match <headername>: <value> */
@@ -76,7 +75,8 @@ public class SimpleWebServer {
 	 			String split[] = line.split(" ");
 	 			contentLength = split[split.length-1];
 	 		}
-	 	} while(line != null && !(line.equals("")));
+	 		line = br.readLine();
+	 	}
 	 	
 	 	System.out.println("REQUEST: " + request);
 	 	
