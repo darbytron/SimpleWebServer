@@ -201,8 +201,7 @@ public class SimpleWebServer {
 	 	   client, serve the "index.html" file */
 	 	
 	 	if (pathname.equals("")) 
-	 		System.out.println("No filename");
-	 	    pathname="index.html";                          
+	 		pathname="index.html";                          
 	 
 		 	/* try to open file specified by pathname */
 		 	try {                                               
@@ -210,7 +209,6 @@ public class SimpleWebServer {
 		 	    c = fr.read();                                  
 		 	}                                                   
 		 	catch (Exception e) {  
-		 		System.out.println("Got a 404");
 		 	    /* if the file is not found,return the
 		 	       appropriate HTTP response code  */
 		 	    osw.write ("HTTP/1.0 404 Not Found\n\n");         
