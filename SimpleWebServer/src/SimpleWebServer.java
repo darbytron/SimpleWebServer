@@ -263,12 +263,12 @@ public class SimpleWebServer {
     	String errorMessage;
     	int statusCode;
     	switch(st) {
-	    	case MALFORMED_HEADER: {
+	    	case MALFORMED_REQUEST: {
 	    		statusCode = 400;
 	    		errorMessage = "Malformed request"; 
 	    		break;
 	    	}
-	    	case MALFORMED_REQUEST : {
+	    	case MALFORMED_HEADER : {
 	    		statusCode = 400;
 	    		errorMessage = "Malformed header"; 
 	    		break;
