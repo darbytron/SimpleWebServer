@@ -116,6 +116,7 @@ public class SimpleWebServer {
 	 	String contentLength  = new String();
 	 	String line = br.readLine();
 	 	
+	 	System.out.println("Reading headers");
 	 	/* Read the headers */
 	 	while(line != null && !(line.equals(""))) {
 	 		
@@ -133,7 +134,7 @@ public class SimpleWebServer {
 	 		line = br.readLine();
 	 	}
 	 	
-	 	
+	 	System.out.println("Getting bytes");
 	 	/* The URL requested needs to be smaller than 1KB */
 	 	if(request.getBytes("UTF-8").length > KILOBYTE) {
 	 		System.out.println("Too large");
@@ -141,6 +142,7 @@ public class SimpleWebServer {
 	 		return false;
 	 	}
 	
+	 	System.out.println("Parsing request");
 	 	/* parse the HTTP request */
 	 	StringTokenizer st = 
 		    new StringTokenizer (request, " ");               
@@ -154,6 +156,7 @@ public class SimpleWebServer {
 	 		return false;
 	 	}
 	 	
+	 	System.out.println("Checking http");
 	 	/* HTTP Version needs to be either 1.0 or 1.1 */
 	 	if(!(httpVersion.equals("HTTP/1.1") || httpVersion.equals("HTTP/1.0"))){
 	 		System.out.println("bad http");
@@ -161,6 +164,7 @@ public class SimpleWebServer {
 	 		return false;
 	 	}
 	 	
+	 	System.out.println("Checking path");
 	 	/*Path has to be in or under the current directory */
 	 	File tmpFile = new File("/", pathname);
 	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
