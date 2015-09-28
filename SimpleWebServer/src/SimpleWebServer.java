@@ -186,6 +186,7 @@ public class SimpleWebServer {
      * updateFile performs the PUT request, updating or creating the file requested
      */         
     public void serveFile (OutputStreamWriter osw, String pathname) throws Exception {
+    	System.out.println("Serving file");
 	 	FileReader fr=null;                                 
 	 	int c=-1;                                           
 	 	StringBuffer sb = new StringBuffer();
@@ -197,6 +198,7 @@ public class SimpleWebServer {
 	 	
 	 	/* if there was no filename specified by the
 	 	   client, serve the "index.html" file */
+	 	System.out.println("No filename");
 	 	if (pathname.equals(""))                            
 	 	    pathname="index.html";                          
 	 
