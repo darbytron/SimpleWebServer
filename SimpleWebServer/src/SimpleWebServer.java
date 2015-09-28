@@ -72,8 +72,7 @@ public class SimpleWebServer {
 	 		return;
 	 	}
 	 	
-	 
-	 	System.out.println("Process parced. Analyzing command...");
+	 	System.out.printf("Process parced. Analyzing command: %s \npathname: %s\n", command, pathname);
 		if (command.equals("GET")) {                    
 		    /* if the request is a GET
 		       try to respond with the file
