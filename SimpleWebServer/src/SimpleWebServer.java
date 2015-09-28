@@ -203,29 +203,29 @@ public class SimpleWebServer {
 	 	if (pathname.equals("")) 
 	 		pathname="index.html";                          
 	 
-		 	/* try to open file specified by pathname */
-		 	try {                                               
-		 	    fr = new FileReader (pathname);                 
-		 	    c = fr.read();                                  
-		 	}                                                   
-		 	catch (Exception e) {  
-		 	    /* if the file is not found,return the
-		 	       appropriate HTTP response code  */
-		 	    osw.write ("HTTP/1.0 404 Not Found\n\n");         
-		 	    return;                                         
-		 	}                                                   
+	 	/* try to open file specified by pathname */
+	 	try {                                               
+	 	    fr = new FileReader (pathname);                 
+	 	    c = fr.read();                                  
+	 	}                                                   
+	 	catch (Exception e) {  
+	 	    /* if the file is not found,return the
+	 	       appropriate HTTP response code  */
+	 	    osw.write("HTTP/1.0 404 Not Found\n\n");         
+		 	return;                                         
+		 }                                                   
  
 		 	/* if the requested file can be successfully opened
-		 	   and read, then return an OK response code and
-		 	   send the contents of the file */
-		 	System.out.println("All's good");
-		 	osw.write ("HTTP/1.0 200 OK\n\n");                    
-		 	while (c != -1) {       
-			    sb.append((char)c);                            
-		 	    c = fr.read();                                  
-		 	}                                                   
-		 	osw.write (sb.toString());                                  
-    	}                                                       
+	 	   and read, then return an OK response code and
+	 	   send the contents of the file */
+	 	System.out.println("All's good");
+	 	osw.write("HTTP/1.0 200 OK\n\n");                    
+	 	while (c != -1) {       
+		    sb.append((char)c);                            
+	 	    c = fr.read();                                  
+	 	}                                                   
+	 	osw.write(sb.toString());                                  
+    }                                                       
 
     public void updateFile(OutputStreamWriter osw, String pathname, BufferedReader br) throws Exception {
     	
