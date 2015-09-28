@@ -198,8 +198,9 @@ public class SimpleWebServer {
 	 	
 	 	/* if there was no filename specified by the
 	 	   client, serve the "index.html" file */
-	 	System.out.println("No filename");
-	 	if (pathname.equals(""))                            
+	 	
+	 	if (pathname.equals("")) 
+	 		System.out.println("No filename");
 	 	    pathname="index.html";                          
 	 
 		 	/* try to open file specified by pathname */
