@@ -69,6 +69,7 @@ public class SimpleWebServer {
 	 	
 	 	/*Send in the reader and output stream writer to validate the request. If we get an error, we handle the error in the validation method and will return*/
 	 	if(!isValidRequest(osw, br)){
+	 		System.out.println("Request not valid");
 	 		return;
 	 	}
 	 	
