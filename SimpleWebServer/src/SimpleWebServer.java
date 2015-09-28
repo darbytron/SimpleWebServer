@@ -94,6 +94,7 @@ public class SimpleWebServer {
 	 	}                                               
 	 	
 	 	/* close the connection to the client */
+		System.out.println("Closing connection");
 	 	osw.close();                                    
     }          
     
