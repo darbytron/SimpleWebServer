@@ -20,6 +20,7 @@ public class SimpleWebServer {
 	private static final int KILOBYTE = 1024;
     /* Run the HTTP server on this TCP port. */           
     private static final int PORT = 8080;
+    /* Enum to used to map the status of the request to the appropriate error */
     private enum Status {
     	MALFORMED_HEADER,
     	MALFORMED_REQUEST,
@@ -30,11 +31,12 @@ public class SimpleWebServer {
     	BAD_HTTP,
     	INTERNAL_ERROR
     }
-    
- 
     /* The socket used to process incoming connections
        from web clients */
-    private static ServerSocket dServerSocket;            
+    private static ServerSocket dServerSocket;    
+ 	private String command = null;                             
+ 	private String pathname = null;
+ 	private String httpVersion = null;
    
     public SimpleWebServer () throws Exception {          
     	dServerSocket = new ServerSocket (PORT);          
@@ -56,7 +58,6 @@ public class SimpleWebServer {
        a HTTP error code. */
     public void processRequest(Socket s) throws Exception { 
     	
-    	System.out.println("Request received. Processing...");
 	 	/* used to read data from the client */ 
 	 	BufferedReader br =                                 
 	 	    new BufferedReader (
@@ -65,63 +66,9 @@ public class SimpleWebServer {
 	 	/* used to write data to the client */
 	 	OutputStreamWriter osw =                            
 	 	    new OutputStreamWriter (s.getOutputStream());  
-	     
-	 	/* read the HTTP request from the client */
 	 	
-	 	String request = br.readLine();
-	 	String contentLength  = new String();
-	 	
-	 	String line = br.readLine();
-	 	/* Read the headers */
-	 	while(line != null && !(line.equals(""))) {
-	 		/* Getting the contentLength */
-	 		/* Request must match <headername>: <value> */
-		 	if(!line.matches("^.*:\\s.*$")){
-		 		handleError(osw, Status.MALFORMED_HEADER);
-		 		return;
-		 	}
-	 		if(line.startsWith("Content-Length:")){
-	 			String split[] = line.split(" ");
-	 			contentLength = split[split.length-1];
-	 		}
-	 		line = br.readLine();
-	 	}
-	 	
-	 	System.out.println("REQUEST: " + request);
-	 	
-	 	/* The URL requested needs to be smaller than 1KB */
-	 	if(request.getBytes("UTF-8").length > KILOBYTE) {
-	 		handleError(osw, Status.TOO_LARGE);
-	 		return;
-	 	}
-	 	
-	 	String command = null;                             
-	 	String pathname = null;
-	 	String httpVersion = null;
-	 	
-	 	/* parse the HTTP request */
-	 	StringTokenizer st = 
-		    new StringTokenizer (request, " ");               
-	 	if(st.countTokens() >= 3){
-	 		command = st.nextToken();                       
-		 	pathname = st.nextToken();
-		 	httpVersion = st.nextToken();
-	 	} else {
-	 		handleError(osw, Status.MALFORMED_REQUEST);
-	 		return;
-	 	}
-	 	
-	 	System.out.println("HTTP-Version: " + httpVersion);
-	 	if(httpVersion.equals("HTTP/1.1") || httpVersion.equals("HTTP/1.0")){
-	 		
-	 	} else {
-	 		handleError(osw, Status.MALFORMED_REQUEST);
-	 		return;
-	 	}
-	 	File tmpFile = new File("/", pathname);
-	 	
-	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
-	 		handleError(osw, Status.FORBIDDEN);
+	 	/*Send in the reader and output stream writer to validate the request. If we get an error, we handle the error in the validation method and will return*/
+	 	if(!isValidRequest(osw, br)){
 	 		return;
 	 	}
 	 	
@@ -134,17 +81,10 @@ public class SimpleWebServer {
 		    serveFile (osw,pathname);                   
 	 	} else if(command.equals("PUT")) {
 	 		/*	if the request is a PUT 
-	 		 	try to update the file 
+	 		 	update or create the file 
 	 		 	the user is specifying. 
 	 		 */
-	 		
-	 		/* Request must include a content-length */
-		 	if(contentLength == null) {
-		 		handleError(osw, Status.MISSING_CONTENT_LENGTH);
-		 		return;
-		 	}
 	 		updateFile(osw, pathname, br);
-	 		
 	 	} else {                                         
 		    /* if the request is a NOT a GET or PUT
 		       return an error saying this server
@@ -157,10 +97,86 @@ public class SimpleWebServer {
 	 	osw.close();                                    
     }          
     
-    public void validateHeaders(OutputStreamWriter osw, BufferedReader br){
+    /**
+     *  Validates the request. Validates :
+     *  	The headers are properly formatted
+     *  	There is a content-length header for PUT requests
+     *  	The request isn't too large
+     *  	The HTTP Version is 1.0 or 1.1
+     *  	The path is in or under our working directory
+     * @param osw
+     * @param br
+     * @return boolean stating if the request was valid. 
+     * @throws Exception
+     */
+    
+    private boolean isValidRequest(OutputStreamWriter osw, BufferedReader br) throws Exception{
     	
+    	boolean isValid = true;
+    	String request = br.readLine();
+	 	String contentLength  = new String();
+	 	String line = br.readLine();
+	 	
+	 	/* Read the headers */
+	 	while(line != null && !(line.equals(""))) {
+	 		
+	 		/* Request must match <headername>: <value> */
+		 	if(!line.matches("^.*:\\s.*$")){
+		 		handleError(osw, Status.MALFORMED_HEADER);
+		 		isValid = false;
+		 	}
+	 		if(line.startsWith("Content-Length:")){
+	 			/* Will need to check the content length on a PUT request. */
+	 			String split[] = line.split(" ");
+	 			contentLength = split[split.length-1];
+	 		}
+	 		line = br.readLine();
+	 	}
+	 	
+	 	
+	 	/* The URL requested needs to be smaller than 1KB */
+	 	if(request.getBytes("UTF-8").length > KILOBYTE) {
+	 		handleError(osw, Status.TOO_LARGE);
+	 		isValid = false;
+	 	}
+	
+	 	/* parse the HTTP request */
+	 	StringTokenizer st = 
+		    new StringTokenizer (request, " ");               
+	 	if(st.countTokens() >= 3){
+	 		command = st.nextToken();                       
+		 	pathname = st.nextToken();
+		 	httpVersion = st.nextToken();
+	 	} else {
+	 		handleError(osw, Status.MALFORMED_REQUEST);
+	 		isValid = false;
+	 	}
+	 	
+	 	/* HTTP Version needs to be either 1.0 or 1.1 */
+	 	if(!(httpVersion.equals("HTTP/1.1") || httpVersion.equals("HTTP/1.0"))){
+	 		handleError(osw, Status.MALFORMED_REQUEST);
+	 		isValid = false;
+	 	}
+	 	
+	 	/*Path has to be in or under the current directory */
+	 	File tmpFile = new File("/", pathname);
+	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
+	 		handleError(osw, Status.FORBIDDEN);
+	 		isValid = false;
+	 	}
+
+ 		/* Request must include a content-length */
+	 	if(contentLength == null && command.equals("PUT")) {
+	 		handleError(osw, Status.MISSING_CONTENT_LENGTH);
+	 		isValid = false;
+	 	}
+    	
+    	return isValid;
     }
- 
+    
+    /**
+     * updateFile performs the PUT request, updating or creating the file requested
+     */         
     public void serveFile (OutputStreamWriter osw, String pathname) throws Exception {
 	 	FileReader fr=null;                                 
 	 	int c=-1;                                           
@@ -198,9 +214,9 @@ public class SimpleWebServer {
 		 	}                                                   
 		 	osw.write (sb.toString());                                  
     	}                                                       
- 
+
     public void updateFile(OutputStreamWriter osw, String pathname, BufferedReader br) throws Exception {
-    	System.out.println("Updating file...");
+    	
     	if(pathname.startsWith("/")){
     		pathname = pathname.substring(1);
     	}
@@ -223,12 +239,17 @@ public class SimpleWebServer {
     		bw.close();
     		
     	} catch(Exception e) {
-    		System.out.println("Something went wrong");
+    		handleError(osw, Status.INTERNAL_ERROR);
     	}	
 		
     }
     
-    
+    /**
+     * handleError writes the appropriate error to the output stream writer and close the writer to end the request
+     * @param osw - Passed in so we can write the appropriate response and close
+     * @param st - Status enum type used to identify which error we should present to the requester
+     * @throws Exception
+     */
     public void handleError(OutputStreamWriter osw, Status st) throws Exception{
     	System.out.println("Handling error " + st);
     	String errorMessage;
@@ -277,7 +298,6 @@ public class SimpleWebServer {
     	osw.close();
     }
 
-    
     /* This method is called when the program is run from
        the command line. */
     public static void main (String argv[]) throws Exception { 
