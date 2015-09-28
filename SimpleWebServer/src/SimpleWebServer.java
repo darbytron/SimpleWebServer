@@ -208,7 +208,8 @@ public class SimpleWebServer {
 		 	    fr = new FileReader (pathname);                 
 		 	    c = fr.read();                                  
 		 	}                                                   
-		 	catch (Exception e) {                               
+		 	catch (Exception e) {  
+		 		System.out.println("Got a 404");
 		 	    /* if the file is not found,return the
 		 	       appropriate HTTP response code  */
 		 	    osw.write ("HTTP/1.0 404 Not Found\n\n");         
@@ -218,6 +219,7 @@ public class SimpleWebServer {
 		 	/* if the requested file can be successfully opened
 		 	   and read, then return an OK response code and
 		 	   send the contents of the file */
+		 	System.out.println("All's good");
 		 	osw.write ("HTTP/1.0 200 OK\n\n");                    
 		 	while (c != -1) {       
 			    sb.append((char)c);                            
