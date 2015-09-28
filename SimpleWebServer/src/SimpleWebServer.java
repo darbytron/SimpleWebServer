@@ -271,6 +271,7 @@ public class SimpleWebServer {
 	    	case MALFORMED_REQUEST : {
 	    		statusCode = 400;
 	    		errorMessage = "Malformed header"; 
+	    		break;
 	    	}
 	    	case FORBIDDEN: {
 	    		statusCode = 403;
@@ -294,6 +295,7 @@ public class SimpleWebServer {
 	    	case BAD_HTTP: {
 	    		statusCode = 505;
 	    		errorMessage = "Bad HTTP Version";
+	    		break;
 	    	}
 	    	default: {
 	    		statusCode = 500;
