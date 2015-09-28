@@ -19,7 +19,18 @@ import java.util.*;
 public class SimpleWebServer {                            
 	private static final int KILOBYTE = 1024;
     /* Run the HTTP server on this TCP port. */           
-    private static final int PORT = 8080;                 
+    private static final int PORT = 8080;
+    private enum Status {
+    	MALFORMED_HEADER,
+    	MALFORMED_REQUEST,
+    	FORBIDDEN,
+    	MISSING_CONTENT_LENGTH,
+    	TOO_LARGE,
+    	NOT_IMPLEMENTED,
+    	BAD_HTTP,
+    	INTERNAL_ERROR
+    }
+    
  
     /* The socket used to process incoming connections
        from web clients */
@@ -63,12 +74,10 @@ public class SimpleWebServer {
 	 	String line = br.readLine();
 	 	/* Read the headers */
 	 	while(line != null && !(line.equals(""))) {
-	 		System.out.println(line);
 	 		/* Getting the contentLength */
 	 		/* Request must match <headername>: <value> */
 		 	if(!line.matches("^.*:\\s.*$")){
-		 		System.out.println("Request sucks, header: " + line);
-		 		handleError(osw, 400);
+		 		handleError(osw, Status.MALFORMED_HEADER);
 		 		return;
 		 	}
 	 		if(line.startsWith("Content-Length:")){
@@ -82,7 +91,7 @@ public class SimpleWebServer {
 	 	
 	 	/* The URL requested needs to be smaller than 1KB */
 	 	if(request.getBytes("UTF-8").length > KILOBYTE) {
-	 		handleError(osw, 414);
+	 		handleError(osw, Status.TOO_LARGE);
 	 		return;
 	 	}
 	 	
@@ -98,7 +107,7 @@ public class SimpleWebServer {
 		 	pathname = st.nextToken();
 		 	httpVersion = st.nextToken();
 	 	} else {
-	 		handleError(osw, 400);
+	 		handleError(osw, Status.MALFORMED_REQUEST);
 	 		return;
 	 	}
 	 	
@@ -106,13 +115,13 @@ public class SimpleWebServer {
 	 	if(httpVersion.equals("HTTP/1.1") || httpVersion.equals("HTTP/1.0")){
 	 		
 	 	} else {
-	 		handleError(osw, 400);
+	 		handleError(osw, Status.MALFORMED_REQUEST);
 	 		return;
 	 	}
 	 	File tmpFile = new File("/", pathname);
 	 	
 	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
-	 		handleError(osw, 403);
+	 		handleError(osw, Status.FORBIDDEN);
 	 		return;
 	 	}
 	 	
@@ -131,7 +140,7 @@ public class SimpleWebServer {
 	 		
 	 		/* Request must include a content-length */
 		 	if(contentLength == null) {
-		 		handleError(osw, 411);
+		 		handleError(osw, Status.MISSING_CONTENT_LENGTH);
 		 		return;
 		 	}
 	 		updateFile(osw, pathname, br);
@@ -140,12 +149,11 @@ public class SimpleWebServer {
 		    /* if the request is a NOT a GET or PUT
 		       return an error saying this server
 		       does not implement the requested command */
-		    handleError(osw, 501);
+		    handleError(osw, Status.NOT_IMPLEMENTED);
 		    return;
 	 	}                                               
 	 	
 	 	/* close the connection to the client */
-		
 	 	osw.close();                                    
     }          
     
@@ -210,59 +218,65 @@ public class SimpleWebServer {
     		
     		while((line = br.readLine()) != null && !line.isEmpty()){
     			bw.write(line);
-    			System.out.println("Line written");
+    			bw.newLine();
     		}
-    		
-    		System.out.println("Exiting writing");
     		bw.close();
     		
     	} catch(Exception e) {
     		System.out.println("Something went wrong");
-    	}
-    	
-		
+    	}	
 		
     }
     
-
     
-    
-    public void handleError(OutputStreamWriter osw, int status) throws Exception{
-    	System.out.println("Handling error " + status);
+    public void handleError(OutputStreamWriter osw, Status st) throws Exception{
+    	System.out.println("Handling error " + st);
     	String errorMessage;
-    	switch(status) {
-	    	case 400: {
-	    		errorMessage = "Malformed request or header"; //These need to be separated
+    	int statusCode;
+    	switch(st) {
+	    	case MALFORMED_HEADER: {
+	    		statusCode = 400;
+	    		errorMessage = "Malformed request"; 
 	    		break;
 	    	}
-	    	case 403: {
+	    	case MALFORMED_REQUEST : {
+	    		statusCode = 400;
+	    		errorMessage = "Malformed header"; 
+	    	}
+	    	case FORBIDDEN: {
+	    		statusCode = 403;
 	    		errorMessage = "Forbidden";
 	    		break;
 	    	}
-	    	case 411: {
+	    	case MISSING_CONTENT_LENGTH: {
+	    		statusCode = 411;
 	    		errorMessage = "Missing content-length header";
 	    		break;
 	    	}
-	    	case 414:
+	    	case TOO_LARGE:
+	    		statusCode = 414;
 	    		errorMessage = "Too large of a request";
 	    		break;
-	    	case 501: {
+	    	case NOT_IMPLEMENTED: {
+	    		statusCode = 501;
 	    		errorMessage = "Not implemented";
 	    		break;
 	    	}
-	    	case 505: {
+	    	case BAD_HTTP: {
+	    		statusCode = 505;
 	    		errorMessage = "Bad HTTP Version";
 	    	}
 	    	default: {
+	    		statusCode = 500;
 	    		errorMessage = "Internal error";
 	    		break;
 	    	}
     	}
-    	String responseMessage = String.format("Return status %d: %s", status, errorMessage);
+    	String responseMessage = String.format("Return status %d: %s", statusCode, errorMessage);
     	osw.write(responseMessage + "\n\n");
     	osw.close();
     }
-    
+
     
     /* This method is called when the program is run from
        the command line. */
