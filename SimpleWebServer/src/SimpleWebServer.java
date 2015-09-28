@@ -111,7 +111,7 @@ public class SimpleWebServer {
     
     private boolean isValidRequest(OutputStreamWriter osw, BufferedReader br) throws Exception{
     	
-    	boolean isValid = true;
+    	
     	String request = br.readLine();
 	 	String contentLength  = new String();
 	 	String line = br.readLine();
@@ -121,8 +121,9 @@ public class SimpleWebServer {
 	 		
 	 		/* Request must match <headername>: <value> */
 		 	if(!line.matches("^.*:\\s.*$")){
+		 		System.out.println("Invalid header");
 		 		handleError(osw, Status.MALFORMED_HEADER);
-		 		isValid = false;
+		 		return false;
 		 	}
 	 		if(line.startsWith("Content-Length:")){
 	 			/* Will need to check the content length on a PUT request. */
@@ -135,8 +136,9 @@ public class SimpleWebServer {
 	 	
 	 	/* The URL requested needs to be smaller than 1KB */
 	 	if(request.getBytes("UTF-8").length > KILOBYTE) {
+	 		System.out.println("Too large");
 	 		handleError(osw, Status.TOO_LARGE);
-	 		isValid = false;
+	 		return false;
 	 	}
 	
 	 	/* parse the HTTP request */
@@ -147,30 +149,32 @@ public class SimpleWebServer {
 		 	pathname = st.nextToken();
 		 	httpVersion = st.nextToken();
 	 	} else {
+	 		System.out.println("Bad request");
 	 		handleError(osw, Status.MALFORMED_REQUEST);
-	 		isValid = false;
+	 		return false;
 	 	}
 	 	
 	 	/* HTTP Version needs to be either 1.0 or 1.1 */
 	 	if(!(httpVersion.equals("HTTP/1.1") || httpVersion.equals("HTTP/1.0"))){
-	 		handleError(osw, Status.MALFORMED_REQUEST);
-	 		isValid = false;
+	 		System.out.println("bad http");
+	 		handleError(osw, Status.BAD_HTTP);
+	 		return false;
 	 	}
 	 	
 	 	/*Path has to be in or under the current directory */
 	 	File tmpFile = new File("/", pathname);
 	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
 	 		handleError(osw, Status.FORBIDDEN);
-	 		isValid = false;
+	 		return false;
 	 	}
 
  		/* Request must include a content-length */
 	 	if(contentLength == null && command.equals("PUT")) {
 	 		handleError(osw, Status.MISSING_CONTENT_LENGTH);
-	 		isValid = false;
+	 		return false;
 	 	}
     	
-    	return isValid;
+    	return true;
     }
     
     /**
