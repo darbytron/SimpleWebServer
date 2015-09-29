@@ -17,9 +17,11 @@ import java.util.*;
  
 
 public class SimpleWebServer {                            
-	private static final int KILOBYTE = 1024;
+	
     /* Run the HTTP server on this TCP port. */           
     private static final int PORT = 8080;
+    /* Static integer to represent bytes per kilobyte for comparing URL length*/
+    private static final int KILOBYTE = 1024;
     /* Enum to used to map the status of the request to the appropriate error */
     private enum Status {
     	MALFORMED_HEADER,
@@ -33,7 +35,9 @@ public class SimpleWebServer {
     }
     /* The socket used to process incoming connections
        from web clients */
-    private static ServerSocket dServerSocket;    
+    private static ServerSocket dServerSocket;  
+    
+    // I pulled these variables out to be class accessible so I could use/assign them in various methods. 
  	private String command = null;                             
  	private String pathname = null;
  	private String httpVersion = null;
@@ -43,7 +47,6 @@ public class SimpleWebServer {
     }                                                     
  
     public void run() throws Exception {  
-    	System.out.println("Listening for requests");
 		while (true) {                                   
 	 	    /* wait for a connection from a client */
 	 	    Socket s = dServerSocket.accept();           
@@ -67,12 +70,14 @@ public class SimpleWebServer {
 	 	OutputStreamWriter osw =                            
 	 	    new OutputStreamWriter (s.getOutputStream());  
 	 	
+	 	//Pulled out the tokenizer and put it into validate request to return the appropriate statuses for malformed requests, headers, etc 
+	 	
 	 	/*Send in the reader and output stream writer to validate the request. If we get an error, we handle the error in the validation method and will return*/
 	 	if(!isValidRequest(osw, br)){
+	 		//handleError is called inside isValidRequest, which closes the OSW, so no need to continue this request. 
 	 		return;
 	 	}
 	 	
-	 	System.out.printf("Process parced. Analyzing command: %s \npathname: %s\n", command, pathname);
 		if (command.equals("GET")) {                    
 		    /* if the request is a GET
 		       try to respond with the file
@@ -117,13 +122,11 @@ public class SimpleWebServer {
 	 	String contentLength  = new String();
 	 	String line = br.readLine();
 	 	
-	 	System.out.println("Reading headers");
 	 	/* Read the headers */
 	 	while(line != null && !(line.equals(""))) {
 	 		
 	 		/* Request must match <headername>: <value> */
 		 	if(!line.matches("^.*:\\s.*$")){
-		 		System.out.println("Invalid header");
 		 		handleError(osw, Status.MALFORMED_HEADER);
 		 		return false;
 		 	}
@@ -135,7 +138,6 @@ public class SimpleWebServer {
 	 		line = br.readLine();
 	 	}
 	 	
-	 	System.out.println("Getting bytes");
 	 	/* The URL requested needs to be smaller than 1KB */
 	 	if(request.getBytes("UTF-8").length > KILOBYTE) {
 	 		System.out.println("Too large");
@@ -144,7 +146,6 @@ public class SimpleWebServer {
 	 	}
 	
 	 	
-	 	System.out.println("Parsing request");
 	 	/* parse the HTTP request */
 	 	StringTokenizer st = 
 		    new StringTokenizer (request, " "); 
@@ -169,17 +170,12 @@ public class SimpleWebServer {
 	 		return false;
 	 	}
 	 	
-	 	System.out.println("Checking http");
 	 	/* HTTP Version needs to be either 1.0 or 1.1 */
 	 	if(!(httpVersion.equals("HTTP/1.1") || httpVersion.equals("HTTP/1.0"))){
-	 		System.out.println("bad http");
 	 		handleError(osw, Status.BAD_HTTP);
 	 		return false;
 	 	}
 	 	
-	 	
-	 	
-	 	System.out.println("Checking path");
 	 	/*Path has to be in or under the current directory */
 	 	File tmpFile = new File("/", pathname);
 	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
@@ -194,13 +190,8 @@ public class SimpleWebServer {
 	 	}
     	
     	return true;
-    }
-    
-    /**
-     * updateFile performs the PUT request, updating or creating the file requested
-     */         
+    }      
     public void serveFile (OutputStreamWriter osw, String pathname) throws Exception {
-    	System.out.println("Serving file");
 	 	FileReader fr=null;                                 
 	 	int c=-1;                                           
 	 	StringBuffer sb = new StringBuffer();
@@ -231,14 +222,21 @@ public class SimpleWebServer {
 		 	/* if the requested file can be successfully opened
 	 	   and read, then return an OK response code and
 	 	   send the contents of the file */
-	 	System.out.println("All's good");
 	 	osw.write("HTTP/1.0 200 OK\n\n");                    
 	 	while (c != -1) {       
 		    sb.append((char)c);                            
 	 	    c = fr.read();                                  
 	 	}                                                   
 	 	osw.write(sb.toString());                                  
-    }                                                       
+    }      
+    
+    /**
+     * updateFile checks first if the file requested is available. If so we update it, if not we create it. 
+     * @param osw - OutputStreamWriter to return status to client
+     * @param pathname - String, path name of File we will be creating or updating
+     * @param br - BufferedReader to read request data, currently located at the top of the file sent
+     * @throws Exception
+     */
 
     public void updateFile(OutputStreamWriter osw, String pathname, BufferedReader br) throws Exception {
     	
@@ -276,7 +274,6 @@ public class SimpleWebServer {
      * @throws Exception
      */
     public void handleError(OutputStreamWriter osw, Status st) throws Exception{
-    	System.out.println("Handling error " + st);
     	String errorMessage;
     	int statusCode;
     	switch(st) {
@@ -328,11 +325,9 @@ public class SimpleWebServer {
     /* This method is called when the program is run from
        the command line. */
     public static void main (String argv[]) throws Exception { 
-    	System.out.println("Starting server...");
     	/* Create a SimpleWebServer object, and run it */
     	SimpleWebServer sws = new SimpleWebServer();           
     	sws.run();
-    	System.out.println("Server running...");
  	
     }                                                          
 }                                                              
