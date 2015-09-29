@@ -151,12 +151,20 @@ public class SimpleWebServer {
 	 	if(st.hasMoreTokens()){
 	 		command = st.nextToken();
 	 	}
+	 	
 	 	if(st.hasMoreTokens()){
 	 		pathname = st.nextToken();
 	 	}
+	 	
 	 	if(st.hasMoreTokens()){
 		 	httpVersion = st.nextToken();
-	 	} 
+	 	}
+	 	
+	 	if(st.hasMoreTokens()) {
+	 		handleError(osw, Status.MALFORMED_REQUEST);
+	 		return false;
+	 	}
+	 	
 	 	if(httpVersion == null) {
 	 		handleError(osw, Status.MALFORMED_REQUEST);
 	 		return false;
@@ -304,7 +312,7 @@ public class SimpleWebServer {
 	    	}
 	    	case BAD_HTTP: {
 	    		statusCode = 505;
-	    		errorMessage = "Bad HTTP Version";
+	    		errorMessage = "HTTP-Version needs to be either 1.0 or 1.1.";
 	    		break;
 	    	}
 	    	default: {
