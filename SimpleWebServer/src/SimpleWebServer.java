@@ -183,7 +183,7 @@ public class SimpleWebServer {
 	 	System.out.println("Checking path");
 	 	/*Path has to be in or under the current directory */
 	 	File tmpFile = new File(pathname);
-	 	if(!(pathname.equals(tmpFile.getCanonicalPath()))){
+	 	if(!(("/" + pathname).equals(tmpFile.getCanonicalPath()))){
 	 		handleError(osw, Status.FORBIDDEN);
 	 		return false;
 	 	}
