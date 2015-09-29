@@ -69,7 +69,6 @@ public class SimpleWebServer {
 	 	
 	 	/*Send in the reader and output stream writer to validate the request. If we get an error, we handle the error in the validation method and will return*/
 	 	if(!isValidRequest(osw, br)){
-	 		System.out.println("Request not valid");
 	 		return;
 	 	}
 	 	
@@ -144,16 +143,21 @@ public class SimpleWebServer {
 	 		return false;
 	 	}
 	
+	 	
 	 	System.out.println("Parsing request");
 	 	/* parse the HTTP request */
 	 	StringTokenizer st = 
-		    new StringTokenizer (request, " ");               
-	 	if(st.countTokens() >= 3){
-	 		command = st.nextToken();                       
-		 	pathname = st.nextToken();
+		    new StringTokenizer (request, " "); 
+	 	if(st.hasMoreTokens()){
+	 		command = st.nextToken();
+	 	}
+	 	if(st.hasMoreTokens()){
+	 		pathname = st.nextToken();
+	 	}
+	 	if(st.hasMoreTokens()){
 		 	httpVersion = st.nextToken();
-	 	} else {
-	 		System.out.println("Bad request");
+	 	} 
+	 	if(httpVersion == null) {
 	 		handleError(osw, Status.MALFORMED_REQUEST);
 	 		return false;
 	 	}
@@ -165,6 +169,8 @@ public class SimpleWebServer {
 	 		handleError(osw, Status.BAD_HTTP);
 	 		return false;
 	 	}
+	 	
+	 	
 	 	
 	 	System.out.println("Checking path");
 	 	/*Path has to be in or under the current directory */
